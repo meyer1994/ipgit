@@ -29,20 +29,18 @@ class Sender(object):
         response = response.json()
         return response['Cid']
 
-    @lru_cache
+    @lru_cache(maxsize=None)
     def _send_blob(self, blob: object) -> dict:
         data = blob.data_stream.read()
         data = io.BytesIO(data)
         return self._add(data)
 
-    @lru_cache
     def _send_tree(self, tree: object) -> dict:
         if tree.type == 'blob':
             return self._send_blob(tree)
         data = {b.name: self._send_blob(b) for b in tree.blobs}
         return self._put(data)
 
-    @lru_cache
     def _send_commit(self, commit: object) -> dict:
         parents = ((p.hexsha, p) for p in commit.parents)
         parents = {s: self._send_commit(p) for s, p in parents}
@@ -66,7 +64,6 @@ class Sender(object):
 
         return self._put(node)
 
-    @lru_cache
     def _send_branch(self, branch: object) -> dict:
         commits = self.repo.iter_commits(branch.name)
         commits = {c.hexsha: self._send_commit(c) for c in commits}
