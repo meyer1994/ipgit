@@ -78,7 +78,7 @@ class Sender(object):
         return self._put(branches)
 
 
-sender = Sender('../ntry')
+sender = Sender('./')
 sent = sender.send()
 
 from pprint import pprint as pp
