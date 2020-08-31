@@ -5,6 +5,7 @@ import shlex
 import subprocess
 import mimetypes
 import tempfile
+from enum import Enum
 from subprocess import PIPE
 
 from fastapi import FastAPI
@@ -15,18 +16,24 @@ tempdir = tempfile.TemporaryDirectory()
 subprocess.run(['git', 'init', '--bare', tempdir.name])
 
 
+class Service(str, Enum):
+    receive = 'git-receive-pack'
+    upload = 'git-upload-pack'
+
+
 app = FastAPI()
 
 
 @app.get('/info/refs')
-async def info(service: str, req: Request):
+async def info(service: Service, req: Request):
+    print(service)
     args = shlex.quote(service)
     args = f'{args} --stateless-rpc --advertise-refs {tempdir.name}'
     args = shlex.split(args)
 
     result = subprocess.run(args, stdout=PIPE, check=True)
 
-    data = b'# service=' + service.encode() + b'\n'
+    data = b'# service=' + service.encode()
     datalen = len(data) + 4
     datalen = b'%04x' % datalen
     data = datalen + data + b'0000' + result.stdout
@@ -37,7 +44,7 @@ async def info(service: str, req: Request):
 
 
 @app.post('/{service}')
-async def receive(service: str, req: Request):
+async def receive(service: Service, req: Request):
     args = shlex.quote(service)
     args = f'{args} --stateless-rpc {tempdir.name}'
     args = shlex.split(args)
