@@ -1,59 +1,41 @@
-import io
 import os
-import gzip
-import shlex
-import subprocess
-import mimetypes
 import tempfile
-from enum import Enum
-from subprocess import PIPE
 
+import ipfshttpclient
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
 
-tempdir = tempfile.TemporaryDirectory()
-subprocess.run(['git', 'init', '--bare', tempdir.name])
+import git
 
-
-class Service(str, Enum):
-    receive = 'git-receive-pack'
-    upload = 'git-upload-pack'
-
+TEMPDIR = tempfile.TemporaryDirectory()
 
 app = FastAPI()
+ipfs = ipfshttpclient.connect()
 
 
-@app.get('/info/refs')
-async def info(service: Service, req: Request):
-    print(service)
-    args = shlex.quote(service)
-    args = f'{args} --stateless-rpc --advertise-refs {tempdir.name}'
-    args = shlex.split(args)
+@app.get('/Qm{path}/info/refs')
+async def mhash(path: str, service: git.Service):
+    mhash = 'Qm' + path
+    ipfs.get(mhash, target=TEMPDIR.name)
+    path = os.path.join(TEMPDIR.name, mhash)
+    return await info(path, service)
 
-    result = subprocess.run(args, stdout=PIPE, check=True)
 
-    data = b'# service=' + service.encode()
-    datalen = len(data) + 4
-    datalen = b'%04x' % datalen
-    data = datalen + data + b'0000' + result.stdout
-    data = io.BytesIO(data)
-
+@app.get('/{path}/info/refs')
+async def info(path: str, service: git.Service):
+    path = os.path.join(TEMPDIR.name, path)
+    await git.bare(path)
+    data = await git.info(service, path)
     media = f'application/x-{service}-advertisement'
     return StreamingResponse(data, media_type=media)
 
 
-@app.post('/{service}')
-async def receive(service: Service, req: Request):
-    args = shlex.quote(service)
-    args = f'{args} --stateless-rpc {tempdir.name}'
-    args = shlex.split(args)
-
-    proc = subprocess.Popen(args, stdin=PIPE, stdout=PIPE)
-    async for data in req.stream():
-        proc.stdin.write(data)
-    proc.stdin.close()
-    proc.wait()
-
+@app.post('/{path}/{service}')
+async def service(path: str, service: git.Service, req: Request):
+    stream = req.stream()
+    path = os.path.join(TEMPDIR.name, path)
+    data = await git.service(service, path, stream)
+    ipfs.add(path, recursive=True, pin=True)
     media = f'application/x-{service}-result'
-    return StreamingResponse(proc.stdout, media_type=media)
+    return StreamingResponse(data, media_type=media)

@@ -9,12 +9,17 @@ python:
   - '3.7'
   - '3.8'
 
+cache:
+  pip: true
+
 install:
   - pip install -r requirements.txt
 
-before_script:
-  - docker run --rm -itd -p 5001:5001 ipfs/go-ipfs daemon --offline --init
-  - sleep 5  # wait for it to start
-
 script:
-  - python t.py
+  - echo "Nothing here..."
+
+deploy:
+  provider: heroku
+  strategy: api
+  edge: true
+  on: master
