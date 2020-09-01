@@ -1,3 +1,4 @@
+import io
 import os
 import tempfile
 
@@ -36,6 +37,14 @@ async def service(path: str, service: git.Service, req: Request):
     stream = req.stream()
     path = os.path.join(TEMPDIR.name, path)
     data = await git.service(service, path, stream)
+
+    data.seek(0, io.SEEK_END)
+    info = b'nice story bro!'
+    info = b'%06x%s' % (len(info) + 6, info)
+    print(info)
+    data.write(info)
+    data.seek(0)
+
     ipfs.add(path, recursive=True, pin=True)
     media = f'application/x-{service}-result'
     return StreamingResponse(data, media_type=media)

@@ -43,4 +43,5 @@ async def service(service: str, path: str, stream: IO) -> IO:
     proc.stdin.close()
     proc.wait()
 
-    return proc.stdout
+    data = proc.stdout.read()
+    return io.BytesIO(data)
