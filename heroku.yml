@@ -1,6 +1,6 @@
 build:
   docker:
-    worker: ipfs/go-ipfs
+    worker: ipfs.Dockerfile
     web: Dockerfile
 
 run:
