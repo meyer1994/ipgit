@@ -1,8 +1,6 @@
 build:
   docker:
-    worker: ipfs.Dockerfile
     web: Dockerfile
 
 run:
   web: uvicorn app:app --host 0.0.0.0 --port $PORT
-  worker: ipfs daemon --init

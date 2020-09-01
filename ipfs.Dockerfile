@@ -1,1 +1,0 @@
-FROM ipfs/go-ipfs
