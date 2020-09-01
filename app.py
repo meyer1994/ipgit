@@ -11,7 +11,7 @@ import git
 TEMPDIR = tempfile.TemporaryDirectory()
 
 app = FastAPI()
-ipfs = ipfshttpclient.connect('/dns/ipfs.io/tcp/443/https')
+ipfs = ipfshttpclient.connect()
 
 
 @app.get('/Qm{path}/info/refs')
