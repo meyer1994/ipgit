@@ -14,9 +14,9 @@ install:
   - sudo make install
 
 before_script:
-  - ipfs daemon --offline --init
+  - ipfs daemon --offline --init > /dev/null & disown
   - sleep 5
-  - 2> /dev/null 1> /dev/null uvicorn app:app & disown
+  - uvicorn app:app --log-level error > /dev/null & disown
   - sleep 5
   - make local
 
