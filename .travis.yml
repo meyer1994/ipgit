@@ -23,4 +23,4 @@ before_script:
   - make local
 
 script:
-  - git push local HEAD
+  - git push local
