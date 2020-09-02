@@ -1,0 +1,3 @@
+#!/bin/sh
+echo "Root IPFS hash:"
+ipfs add --recursive --quieter --pin $PWD
