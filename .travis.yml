@@ -1,9 +1,6 @@
 os: linux
 dist: bionic
 
-services:
-  - docker
-
 language: python
 python:
   - '3.7'
@@ -14,7 +11,7 @@ cache:
 
 install:
   - pip install -r requirements.txt
-  - make install
+  - sudo make install
 
 before_script:
   - ipfs daemon --offline --init
