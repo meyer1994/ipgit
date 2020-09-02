@@ -1,6 +1,7 @@
 import io
 import os
 import tempfile
+from enum import Enum
 
 import ipfshttpclient
 from fastapi import FastAPI
@@ -11,40 +12,50 @@ import git
 
 TEMPDIR = tempfile.TemporaryDirectory()
 
+
+class Service(str, Enum):
+    receive = 'git-receive-pack'
+    upload = 'git-upload-pack'
+
+
 app = FastAPI()
 ipfs = ipfshttpclient.connect()
 
 
-@app.get('/Qm{path}/info/refs')
-async def mhash(path: str, service: git.Service):
-    mhash = 'Qm' + path
-    ipfs.get(mhash, target=TEMPDIR.name)
-    path = os.path.join(TEMPDIR.name, mhash)
-    return await info(path, service)
-
-
-@app.get('/{path}/info/refs')
-async def info(path: str, service: git.Service):
-    path = os.path.join(TEMPDIR.name, path)
-    await git.bare(path)
+@app.get('/Qm{qmhash}/info/refs')
+async def info(qmhash: str, service: Service):
+    qmhash = 'Qm' + qmhash
+    ipfs.get(qmhash, target=TEMPDIR.name)
+    path = os.path.join(TEMPDIR.name, qmhash)
     data = await git.info(service, path)
     media = f'application/x-{service}-advertisement'
     return StreamingResponse(data, media_type=media)
 
 
-@app.post('/{path}/{service}')
-async def service(path: str, service: git.Service, req: Request):
+@app.post('/Qm{qmhash}/{service}')
+async def service(qmhash: str, service: Service, req: Request):
     stream = req.stream()
-    path = os.path.join(TEMPDIR.name, path)
+    qmhash = 'Qm' + qmhash
+    path = os.path.join(TEMPDIR.name, qmhash)
     data = await git.service(service, path, stream)
+    media = f'application/x-{service}-result'
+    return StreamingResponse(data, media_type=media)
 
-    data.seek(0, io.SEEK_END)
-    info = b'nice story bro!'
-    info = b'%06x%s' % (len(info) + 6, info)
-    print(info)
-    data.write(info)
-    data.seek(0)
 
-    ipfs.add(path, recursive=True, pin=True)
+@app.get('/info/refs')
+async def info(service: Service):
+    with tempfile.TemporaryDirectory() as tempdir:
+        await git.bare(tempdir)
+        data = await git.info(service, tempdir)
+    media = f'application/x-{service}-advertisement'
+    return StreamingResponse(data, media_type=media)
+
+
+@app.post('/{service}')
+async def service(service: Service, req: Request):
+    stream = req.stream()
+    with tempfile.TemporaryDirectory() as tempdir:
+        await git.bare(tempdir, post=True)
+        data = await git.service(service, tempdir, stream)
     media = f'application/x-{service}-result'
     return StreamingResponse(data, media_type=media)

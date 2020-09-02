@@ -1,7 +1,18 @@
-.PHONY: install
+.PHONY: clean repo
+
+REPO=.repo
+HOST=http://localhost:8000
 
 
-install:
-	wget -q https://dist.ipfs.io/go-ipfs/v0.6.0/go-ipfs_v0.6.0_linux-amd64.tar.gz
-	tar -xzvf go-ipfs_v0.6.0_linux-amd64.tar.gz
-	install go-ipfs/ipfs /bin
+repo:
+	git init --bare $(REPO)
+	cp -v post-update $(REPO)/hooks/post-update
+	chmod +x $(REPO)/hooks/post-update
+	git remote add ipfs $(REPO)
+	git remote add local $(HOST)
+
+
+clean:
+	rm -rf $(REPO)
+	git remote remove ipfs
+	git remote remove local

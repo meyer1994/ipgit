@@ -1,21 +1,33 @@
 import io
+import os
+import stat
 import shlex
 import subprocess
-from enum import Enum
 from typing import IO
 from subprocess import PIPE
 
 
-class Service(str, Enum):
-    receive = 'git-receive-pack'
-    upload = 'git-upload-pack'
-
-
-async def bare(path: str) -> str:
+async def bare(path: str, hook: bool = False) -> None:
     path = shlex.quote(path)
     args = f'git init --bare {path}'
     args = shlex.split(args)
     subprocess.run(args, check=True)
+
+    if hook is False:
+        return
+
+    hook = '''
+    #!/bin/sh
+    echo "Root IPFS hash:"
+    ipfs add --recursive --quieter --pin $PWD
+    '''
+
+    path = os.path.join(path, 'hooks/post-update')
+    with open(path, 'wt') as file:
+        file.write(hook)
+
+    st = os.stat(path)
+    os.chmod(path, st.st_mode | stat.S_IEXEC)
 
 
 async def info(service: str, path: str) -> IO:
