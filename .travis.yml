@@ -15,5 +15,10 @@ cache:
 install:
   - pip install -r requirements.txt
 
+before_script:
+  - docker run -itd -p 5001:5001 ipfs/go-ipfs daemon --offline --init
+  - uvicorn app:app & disown
+  - make local
+
 script:
-  - echo "Nothing here..."
+  - git push ipfs
