@@ -21,4 +21,4 @@ before_script:
   - make local
 
 script:
-  - git push ipfs
+  - git push ipfs HEAD
