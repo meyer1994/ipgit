@@ -55,7 +55,7 @@ async def info(service: Service):
 async def service(service: Service, req: Request):
     stream = req.stream()
     with tempfile.TemporaryDirectory() as tempdir:
-        await git.bare(tempdir, post=True)
+        await git.bare(tempdir, hook=True)
         data = await git.service(service, tempdir, stream)
     media = f'application/x-{service}-result'
     return StreamingResponse(data, media_type=media)
