@@ -9,6 +9,7 @@ Because it is possible!
 - [About](#about)
 - [Install](#install)
 - [Usage](#usage)
+- [Thanks](#thanks)
 
 ## About
 
@@ -72,9 +73,19 @@ $ make local  # optional
 When developing, you can simply test your modification by calling
 `git push local`.
 
+## Thanks
+
+This project would not have been possible without the code in the following
+repositories. They helped me understand a lot about git http backend.
+
+- [git_http_backend.py][5]
+- [grack][6]
+
 
 [1]: https://fastapi.tiangolo.com/
 [2]: https://uvicorn.org/
 [3]: https://ipfs.io/
 [4]: https://git-scm.com/
 
+[5]: https://github.com/dvdotsenko/git_http_backend.py
+[6]: https://github.com/schacon/grack
