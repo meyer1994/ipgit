@@ -17,9 +17,3 @@ install:
 
 script:
   - echo "Nothing here..."
-
-deploy:
-  provider: heroku
-  strategy: api
-  edge: true
-  on: master
