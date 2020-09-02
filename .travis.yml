@@ -18,9 +18,9 @@ install:
 before_script:
   - docker run -itd -p 5001:5001 ipfs/go-ipfs:v0.6.0 daemon --offline --init
   - sleep 5
-  - uvicorn app:app & disown
+  - 2> /dev/null 1> /dev/null uvicorn app:app & disown
   - sleep 5
   - make local
 
 script:
-  - git push ipfs HEAD
+  - git push local HEAD
