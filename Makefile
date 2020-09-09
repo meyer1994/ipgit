@@ -1,6 +1,10 @@
-.PHONY: clean local install
+.PHONY: clean local install serve
 
-HOST=http://localhost:8000
+HOST=http://localhost:8000/dev
+
+
+serve:
+	uvicorn ipgit:app --reload
 
 
 local:
