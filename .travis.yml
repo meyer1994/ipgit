@@ -16,7 +16,7 @@ install:
 before_script:
   - ipfs daemon --offline --init > /dev/null & disown
   - sleep 5
-  - uvicorn app:app --log-level error > /dev/null & disown
+  - uvicorn ipgit:app --log-level error > /dev/null & disown
   - sleep 5
   - make local
 
