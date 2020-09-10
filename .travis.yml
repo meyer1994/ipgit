@@ -20,10 +20,8 @@ before_script:
   - sleep 5
 
 script:
-  - git init test
-  - cd test
-  - echo "test" > test.txt
-  - git add test.txt
-  - git commit -m "test file"
-  - git remote add local http://localhost:8000/test
+  - git clone https://github.com/ipfs/go-ipfs.git
+  - cd go-ipfs
+  - git remote add local http://localhost:8000/go-ipfs
   - git push local master
+
