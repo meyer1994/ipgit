@@ -1,4 +1,4 @@
-.PHONY: clean local install serve
+.PHONY: clean local install serve activate
 
 HOST=http://localhost:8000/dev
 
@@ -13,6 +13,10 @@ local:
 
 clean:
 	git remote remove local
+
+
+venv:
+	python -m venv venv --clear
 
 
 install:
