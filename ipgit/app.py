@@ -16,7 +16,6 @@ TEMPDIR = tempfile.TemporaryDirectory()
 
 app = FastAPI()
 
-logging.basicConfig(level=logging.INFO)
 
 logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
