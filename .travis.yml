@@ -15,10 +15,10 @@ install:
   - sudo make install
 
 before_script:
-  - 2>/dev/null 1>&2 ipfs daemon --offline --init & disown
-  - sleep 5
+  - 2>/dev/null 1>&2 ipfs daemon --init & disown
+  - sleep 10
   - 2>/dev/null 1>&2 uvicorn ipgit:app & disown
-  - sleep 5
+  - sleep 10
 
 script:
   - git init test
