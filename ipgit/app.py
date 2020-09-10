@@ -4,7 +4,6 @@ import logging
 import tempfile
 from enum import Enum
 
-import ipfshttpclient
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
