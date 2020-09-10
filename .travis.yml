@@ -20,5 +20,10 @@ before_script:
   - sleep 5
 
 script:
-  - make local
+  - git init test
+  - cd test
+  - echo "test" > test.txt
+  - git add test.txt
+  - git commit -m "test file"
+  - git remote add local http://localhost:8000/test
   - git push local master
