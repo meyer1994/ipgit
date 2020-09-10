@@ -14,11 +14,11 @@ install:
   - sudo make install
 
 before_script:
-  - ipfs daemon --offline --init > /dev/null & disown
+  - 2>/dev/null 1>&2 ipfs daemon --offline --init & disown
   - sleep 5
-  - uvicorn ipgit:app --log-level error > /dev/null & disown
+  - 2>/dev/null 1>&2 uvicorn ipgit:app & disown
   - sleep 5
-  - make local
 
 script:
+  - make local
   - git push local master
