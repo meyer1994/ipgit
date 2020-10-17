@@ -12,7 +12,8 @@ install:
   - docker build . -t ipgit
 
 before_script:
-  - docker run --rm -it -p 8000:8000 ipgit
+  - docker run --rm -itd -p 8000:8000 ipgit
+  - docker ps -a
 
 script:
   - git clone https://github.com/ipfs/go-ipfs.git
