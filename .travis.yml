@@ -21,4 +21,3 @@ script:
   - cd go-ipfs
   - git remote add local http://localhost:8000/go-ipfs
   - git push local master
-
