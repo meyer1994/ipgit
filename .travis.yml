@@ -1,23 +1,18 @@
 os: linux
 dist: bionic
 
+services:
+  - docker
+
 language: python
 python:
-  - '3.6'
-  - '3.7'
   - '3.8'
 
-cache:
-  pip: true
-
 install:
-  - pip install -r requirements.txt
-  - sudo make install
+  - docker build . -t ipgit
 
 before_script:
-  - ipfs init
-  - uvicorn --log-level error ipgit:app & disown
-  - sleep 5
+  - docker run --rm -it -p 8000:8000 ipgit
 
 script:
   - git clone https://github.com/ipfs/go-ipfs.git
