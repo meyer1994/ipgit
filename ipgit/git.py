@@ -1,18 +1,10 @@
 import io
-import os
 import stat
-import shlex
-import logging
-import functools
-import subprocess
 from typing import IO
 from subprocess import PIPE
 from pathlib import Path
 
 from pfluent import Runner
-
-logger = logging.getLogger('git')
-logger.setLevel(logging.INFO)
 
 
 class Git(object):

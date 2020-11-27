@@ -1,6 +1,3 @@
-import io
-import os
-import logging
 import tempfile
 from enum import Enum
 from pathlib import Path
@@ -17,10 +14,6 @@ TEMPDIR = tempfile.TemporaryDirectory()
 app = FastAPI()
 
 
-logger = logging.getLogger('App')
-logger.setLevel(logging.INFO)
-
-
 class Service(Enum):
     receive = 'git-receive-pack'
     upload = 'git-upload-pack'
@@ -29,14 +22,15 @@ class Service(Enum):
 @app.get('/Qm{qmhash}/info/refs')
 async def ipfsinforefs(qmhash: str, service: Service):
     qmhash = f'Qm{qmhash}'
-    path = os.path.join(TEMPDIR.name, qmhash)
+    path = Path(TEMPDIR.name, qmhash)
+    repo = Git(path)
 
     Runner('ipfs')\
         .arg('get', qmhash)\
         .arg('--output', path)\
         .run(check=True)
 
-    data = Git(path).inforefs(service.value)
+    data = repo.inforefs(service.value)
     media = f'application/x-{service.value}-advertisement'
     return StreamingResponse(data, media_type=media)
 
@@ -60,12 +54,12 @@ async def inforefs(path: str, service: Service):
 
 @app.post('/{path}/{service}')
 async def service(path: str, service: Service, req: Request):
+    path = Path(TEMPDIR.name, path)
+    repo = Git(path)
+
     stream = req.stream()
     data = [data async for data in stream]
     data = b''.join(data)
-
-    path = Path(TEMPDIR.name, path)
-    repo = Git(path)
 
     data = repo.service(service.value, data)
     media = f'application/x-{service.value}-result'
