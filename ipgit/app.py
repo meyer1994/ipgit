@@ -4,6 +4,7 @@ import logging
 import tempfile
 from enum import Enum
 
+from pfluent import Runner
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
@@ -28,11 +29,14 @@ class Service(str, Enum):
 @app.get('/Qm{qmhash}/info/refs')
 async def ipfsinforefs(qmhash: str, service: Service):
     qmhash = f'Qm{qmhash}'
+    output = os.path.join(TEMPDIR.name, qmhash)
+
+    Runner('ipfs')\
+        .arg('get', qmhash)\
+        .arg('--output', output)\
+        .run(check=True)
+
     path = os.path.join(TEMPDIR.name, qmhash)
-
-    target = os.path.join(TEMPDIR.name, qmhash)
-    ipfs.get(qmhash, target=target)
-
     data, media = git.inforefs(path, service)
     return StreamingResponse(data, media_type=media)
 
