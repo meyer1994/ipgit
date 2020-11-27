@@ -3,14 +3,14 @@ import os
 import logging
 import tempfile
 from enum import Enum
+from pathlib import Path
 
 from pfluent import Runner
 from fastapi import FastAPI
 from starlette.requests import Request
 from starlette.responses import StreamingResponse
 
-import ipgit.git as git
-import ipgit.ipfs as ipfs
+from ipgit.git import Git
 
 TEMPDIR = tempfile.TemporaryDirectory()
 
@@ -21,7 +21,7 @@ logger = logging.getLogger('App')
 logger.setLevel(logging.INFO)
 
 
-class Service(str, Enum):
+class Service(Enum):
     receive = 'git-receive-pack'
     upload = 'git-upload-pack'
 
@@ -29,37 +29,44 @@ class Service(str, Enum):
 @app.get('/Qm{qmhash}/info/refs')
 async def ipfsinforefs(qmhash: str, service: Service):
     qmhash = f'Qm{qmhash}'
-    output = os.path.join(TEMPDIR.name, qmhash)
+    path = os.path.join(TEMPDIR.name, qmhash)
 
     Runner('ipfs')\
         .arg('get', qmhash)\
-        .arg('--output', output)\
+        .arg('--output', path)\
         .run(check=True)
 
-    path = os.path.join(TEMPDIR.name, qmhash)
-    data, media = git.inforefs(path, service)
+    data = Git(path).inforefs(service.value)
+    media = f'application/x-{service.value}-advertisement'
     return StreamingResponse(data, media_type=media)
 
 
 @app.get('/{path}/info/refs')
 async def inforefs(path: str, service: Service):
-    path = os.path.join(TEMPDIR.name, path)
+    path = Path(TEMPDIR.name, path)
+    repo = Git(path) if path.exists() else Git.init(path)
 
-    if not os.path.exists(path):
-        git.init(path)
+    hook = r'''
+        #!/bin/sh
+        echo "IPFS hash:"
+        ipfs add --recursive --quieter --pin $PWD
+    '''
+    repo.add_hook('post-receive', hook)
 
-    data, media = git.inforefs(path, service)
+    data = repo.inforefs(service.value)
+    media = f'application/x-{service.value}-advertisement'
     return StreamingResponse(data, media_type=media)
 
 
 @app.post('/{path}/{service}')
 async def service(path: str, service: Service, req: Request):
-    path = os.path.join(TEMPDIR.name, path)
-
     stream = req.stream()
     data = [data async for data in stream]
     data = b''.join(data)
-    data = io.BytesIO(data)
 
-    data, media = git.service(path, service, data)
+    path = Path(TEMPDIR.name, path)
+    repo = Git(path)
+
+    data = repo.service(service.value, data)
+    media = f'application/x-{service.value}-result'
     return StreamingResponse(data, media_type=media)

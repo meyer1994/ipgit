@@ -7,76 +7,60 @@ import functools
 import subprocess
 from typing import IO
 from subprocess import PIPE
+from pathlib import Path
 
+from pfluent import Runner
 
 logger = logging.getLogger('git')
 logger.setLevel(logging.INFO)
 
 
-def init(path: str) -> str:
-    path = shlex.quote(path)
+class Git(object):
+    def __init__(self, path: str):
+        super(Git, self).__init__()
+        self.path = Path(path)
 
-    cmd = f'git init --bare {path}'
-    cmd = shlex.split(cmd)
+    @staticmethod
+    def init(path: str) -> 'Git':
+        Runner('git')\
+            .arg('init')\
+            .arg('--bare')\
+            .arg(path)\
+            .run(check=True)
+        return Git(path)
 
-    logger.info('Excuting: %s', cmd)
-    subprocess.run(cmd, check=True)
+    def add_hook(self, name: str, hook: str) -> str:
+        path = Path(self.path, 'hooks', name)
+        path.write_text(hook)
+        st = path.stat()
+        path.chmod(st.st_mode | stat.S_IEXEC)
+        return str(path)
 
-    data = r'''
-        #!/bin/sh
-        pwd
-        echo "IPFS hash:"
-        ipfs add --recursive --quieter --pin $PWD
-    '''
-    data = io.StringIO(data)
+    def inforefs(self, service: str) -> IO:
+        result = Runner(service)\
+            .arg('--stateless-rpc')\
+            .arg('--advertise-refs')\
+            .arg(self.path)\
+            .run(check=True, capture_output=True)
 
-    reader = functools.partial(data.read, 2**20)
-    reader = iter(reader, '')
+        # Adapted from:
+        #   https://github.com/schacon/grack/blob/master/lib/grack.rb
+        data = b'# service=' + service.encode()
+        datalen = len(data) + 4
+        datalen = b'%04x' % datalen
+        data = datalen + data + b'0000' + result.stdout
 
-    hook = os.path.join(path, 'hooks', 'post-receive')
-    logger.info('Copying `post-receive` hook to: %s', hook)
+        return io.BytesIO(data)
 
-    with open(hook, 'wt') as file:
-        for chunk in reader:
-            file.write(chunk)
+    def service(self, service: str, data: bytes) -> IO:
+        proc = Runner(service)\
+            .arg('--stateless-rpc')\
+            .arg(self.path)\
+            .popen(stdin=PIPE, stdout=PIPE)
 
-    st = os.stat(hook)
-    os.chmod(hook, st.st_mode | stat.S_IEXEC)
+        try:
+            data, _ = proc.communicate(data)
+        finally:
+            proc.wait()
 
-    return path
-
-
-def inforefs(path: str, service: str) -> (IO, str):
-    path, service = shlex.quote(path), shlex.quote(service)
-
-    cmd = f'{service} --stateless-rpc --advertise-refs {path}'
-    cmd = shlex.split(cmd)
-
-    logger.info('Excuting: %s', cmd)
-    result = subprocess.run(cmd, stdout=PIPE, check=True)
-
-    # Adapted from:
-    #   https://github.com/schacon/grack/blob/master/lib/grack.rb
-    data = b'# service=' + service.encode()
-    datalen = len(data) + 4
-    datalen = b'%04x' % datalen
-    data = datalen + data + b'0000' + result.stdout
-
-    return io.BytesIO(data), f'application/x-{service}-advertisement'
-
-
-def service(path: str, service: str, data: IO) -> (IO, str):
-    path, service = shlex.quote(path), shlex.quote(service)
-
-    cmd = f'{service} --stateless-rpc {path}'
-    cmd = shlex.split(cmd)
-
-    data = data.read()
-
-    logger.info('Excuting: %s', cmd)
-    proc = subprocess.Popen(cmd, stdin=PIPE, stdout=PIPE)
-    data, _ = proc.communicate(data)
-    proc.wait()
-
-    data = io.BytesIO(data)
-    return data, f'application/x-{service}-result'
+        return io.BytesIO(data)
