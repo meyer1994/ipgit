@@ -1,3 +1,3 @@
 fastapi==0.62.0
-uvicorn==0.12.3
+uvicorn==0.13.0
 pfluent==0.0.1
