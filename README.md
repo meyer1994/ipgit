@@ -1,6 +1,6 @@
 # Inter Planetary GIT
 
-[![Build Status](https://travis-ci.com/meyer1994/ipgit.svg?branch=master)](https://travis-ci.com/meyer1994/ipgit)
+[![build](https://github.com/meyer1994/ipgit/actions/workflows/build.yml/badge.svg)](https://github.com/meyer1994/ipgit/actions/workflows/build.yml)
 [![standard-readme compliant](https://img.shields.io/badge/readme%20style-standard-brightgreen.svg?style=flat-square)](https://github.com/RichardLitt/standard-readme)
 
 Because it is possible!
