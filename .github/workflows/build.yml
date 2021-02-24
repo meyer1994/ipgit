@@ -24,7 +24,7 @@ jobs:
 
       - name: Run container
         run: |
-          docker run --rm -itd -p 8000:8000
+          docker run --rm -itd -p 8000:8000 ipgit
           sleep 5
           docker ps -a
 
