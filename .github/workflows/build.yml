@@ -1,0 +1,36 @@
+name: build
+
+on:
+  - push
+  - pull_request
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-python@v2
+        with:
+          python-version: '3.9'
+
+      - name: Install flake8
+        run: pip install flake8
+
+      - name: Run flake8
+        run: flake8 --statistics ipgit/
+
+      - name: Build container
+        run: docker build . -t ipgit
+
+      - name: Run container
+        run: |
+          docker run --rm -itd -p 8000:8000
+          sleep 5
+          docker ps -a
+
+      - name: Test container
+        run: |
+          git clonegit clone https://github.com/ipfs/go-ipfs.git
+          cd go-ipfs
+          git remote add local http://localhost:8000/go-ipfs
+          git push local master
