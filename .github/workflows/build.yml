@@ -30,7 +30,7 @@ jobs:
 
       - name: Test container
         run: |
-          git clonegit clone https://github.com/ipfs/go-ipfs.git
+          git clone https://github.com/ipfs/go-ipfs.git
           cd go-ipfs
           git remote add local http://localhost:8000/go-ipfs
           git push local master
