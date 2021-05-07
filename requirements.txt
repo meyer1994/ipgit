@@ -1,3 +1,3 @@
-fastapi==0.63.0
+fastapi==0.64.0
 uvicorn==0.13.4
 pfluent==0.0.1
