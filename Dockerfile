@@ -1,5 +1,5 @@
 FROM ipfs/go-ipfs:latest as ipfs
-FROM python:3.9.7-slim
+FROM python:3.10.0-slim
 
 WORKDIR /app
 
