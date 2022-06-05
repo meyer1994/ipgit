@@ -52,3 +52,4 @@ jobs:
           heroku_app_name: ipgit
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
           heroku_api_key: ${{ secrets.HEROKU_API_KEY }}
+          usedocker: true
