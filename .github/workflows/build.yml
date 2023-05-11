@@ -47,7 +47,7 @@ jobs:
       - image
     steps:
       - uses: actions/checkout@v3
-      - uses: akhileshns/heroku-deploy@v3.12.13
+      - uses: akhileshns/heroku-deploy@v3.12.14
         with:
           heroku_app_name: ipgit
           heroku_email: ${{ secrets.HEROKU_EMAIL }}
