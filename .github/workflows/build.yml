@@ -8,7 +8,7 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
         with:
           python-version: '3.9'
@@ -18,7 +18,7 @@ jobs:
   flake:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: actions/setup-python@v5
       - run: pip install flake8
       - run: flake8 --statistics ipgit/
@@ -26,7 +26,7 @@ jobs:
   image:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: docker build . -t ipgit
       - name: Run container
         run: |
@@ -46,7 +46,7 @@ jobs:
     needs:
       - image
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: akhileshns/heroku-deploy@v4
         with:
           heroku_app_name: ipgit
